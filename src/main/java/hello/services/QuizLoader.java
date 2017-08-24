@@ -83,9 +83,9 @@ public class QuizLoader {
 		int end = string.indexOf("<br>", start + 1);
 
 		String answer = string.substring(start + 4, end).trim();
-		answer = cutOutHtmlTags(answer, "a", "span", "b")
-				.replaceAll("&nbsp;"," ")
-				.replaceAll("\n","");
+//		answer = cutOutHtmlTags(answer, "a", "span", "b")
+//				.replaceAll("&nbsp;"," ")
+//				.replaceAll("\n","");
 		return answer;
 	}
 

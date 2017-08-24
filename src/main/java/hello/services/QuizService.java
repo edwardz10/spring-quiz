@@ -1,6 +1,7 @@
 package hello.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -103,6 +104,8 @@ public class QuizService {
 			loadQuestions();
 		}
 
-		return allQuestions.get(new Random().nextInt(allQuestions.size()));
+		Collections.shuffle(allQuestions);
+		return allQuestions.get(0);
+//		return allQuestions.get(new Random().nextInt(allQuestions.size()));
 	}
 }
