@@ -16,17 +16,13 @@
 	</script>
 
 	<h2>
-		<i>
-			<p>
-			<div id="q">${question.question}</div>
-			</p>
-		</i>
-	</h2>
-	<h3>
 		<p>
-			<div id="a" onclick="clickOnAnswer()">${question.answer}</div>
+		<div id="q">${question.question}</div>
 		</p>
-	</h3>
+	</h2>
+	<p>
+		<div id="a" onclick="clickOnAnswer()">${question.answer}</div>
+	</p>
 
 	<button type="submit" onclick="window.location.reload()">Next question</button>
 </body>
