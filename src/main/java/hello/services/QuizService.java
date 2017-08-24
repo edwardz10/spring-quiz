@@ -3,6 +3,8 @@ package hello.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 
@@ -11,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import hello.dao.QuizDAO;
 import hello.entities.Quiz;
-import hello.services.repositories.QuizRepository;
 
 @Service
 public class QuizService {
@@ -22,24 +24,52 @@ public class QuizService {
 	/**
 	 * Services
 	 */
-	private final QuizRepository quizRepository;
 	private final QuizLoader quizLoader;
+	private final QuizDAO quizDao;
 
 	private List<Quiz> allQuestions;
 
+	private class DBPopulator implements Runnable {
+
+		private List<Quiz> questions;
+
+		public DBPopulator(List<Quiz> allQuestions) {
+			questions = allQuestions;
+		}
+		
+		@Override
+		public void run() {
+			LOG.warn(Thread.currentThread() + ": start saving objects into the db...");
+			
+			for (Quiz q : questions) {
+				quizDao.saveQuestion(q);
+			}		
+
+			LOG.warn(Thread.currentThread() + ": db population finished.");
+		}
+	}
+	
 	@PostConstruct
 	public void initialize() {
 		allQuestions = new ArrayList<>();
 	}
 	
 	@Autowired
-	public QuizService(QuizRepository quizRepository, QuizLoader quizLoader) {
-		this.quizRepository = quizRepository;
+	public QuizService(QuizLoader quizLoader, QuizDAO quizDao) {
 		this.quizLoader = quizLoader;
+		this.quizDao = quizDao;
 	}
 
 	private void loadQuestions() {
-		allQuestions = quizLoader.loadQuestions();
+		allQuestions = quizDao.getAllQuestions(); 
+
+		if (allQuestions.isEmpty()) {
+			allQuestions = quizLoader.loadQuestions(); 
+
+			ExecutorService executorService = Executors.newCachedThreadPool();
+			executorService.execute(new DBPopulator(allQuestions));
+		}
+
 /*		
 		Iterable<Quiz> questions = quizRepository.findAll();
 		Iterator<Quiz> it = questions.iterator();
