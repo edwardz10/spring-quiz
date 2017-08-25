@@ -78,7 +78,7 @@ public class QuizLoader {
 		return sb.toString();
 	}
 	
-	public String getAnswer(String string, int pos) {
+	public String getAnswer(StringBuilder string, int pos) {
 		int start = string.indexOf("<br>", pos);
 		int end = string.indexOf("<br>", start + 1);
 
@@ -89,10 +89,10 @@ public class QuizLoader {
 		return answer;
 	}
 
-	private List<Quiz> getQuestionsFromString(String part) {
+	private List<Quiz> getQuestionsFromString(StringBuilder part) {
 		List<Quiz> questions = new ArrayList<>();
-		String bChunk, question, answer;
-		int start = 0, end = 0;
+		String bChunk, question, answer, reference;
+		int start = 0, end = 0, refStart = 0, refEnd = 0;
 
 		while (true) {
 			start = part.indexOf("<b>", end);
@@ -105,6 +105,19 @@ public class QuizLoader {
 					question = castToQuestion(bChunk);
 					
 					if (question != null) {
+						/**
+						 * Look for the reference "(<a href=" part..
+						 */
+						refStart = part.indexOf("<a href", end);
+						
+						if (refStart < end + 10) {
+							refEnd = part.indexOf("</a>", refStart);
+
+							reference = "(" + part.substring(refStart, refEnd + 4) + ")"; 
+							LOG.info("reference: " + reference);
+							question += " " + reference;
+						}
+						
 						answer = getAnswer(part, end);
 						questions.add(new Quiz(question, answer));
 					}
@@ -127,7 +140,7 @@ public class QuizLoader {
 		String response = restTemplate.getForObject(url1, String.class, restParams);
 
 		Document doc = Jsoup.parse(response);
-		String questionsChunk = doc.select("div[dir=ltr]").first().html();
+		StringBuilder questionsChunk = new StringBuilder(doc.select("div[dir=ltr]").first().html());
 
 		return getQuestionsFromString(questionsChunk);
 		
